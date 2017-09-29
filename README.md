@@ -5,14 +5,14 @@ A JSON Parser written in Python3
 
 ## Simple Usage
 - The major function is in `parser/Parser`.
-```python3
+```python
 from parser.Parser import *
 result = Parser(RAW_DATA).parse()
 ```
 
 ## Generate Tokens
 Use `tokenizer/Tokenizer` and `tokenizer/Readers` to generate **Tokens**
-```python3
+```python
 from tokenizer.Reader import *
 from tokenizer.Tokenizer import *
 from parser.Parser import *
@@ -29,7 +29,7 @@ result = Parser(tokenList).parse()
 
 ## Access enries
 The method of accessing elements in `JSONArray` and `JSONObject` is the same as that of using native module(json).
-```
+```python
 result = Parser(RAW_DATA).parse()
 result[KEY] # For JSONObject
 result[INDEX] # For JSONArray

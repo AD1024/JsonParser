@@ -39,10 +39,12 @@ class Tokenizer(object) :
                 return Token(TokenEnum.NULL, 'null')
 
         def readBool(s) :
-            rem = {
-                't' : self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos(), 
-                'f' : self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos(), 
-            }[s]
+            s = s.lower()
+            rem = ''
+            if s == 't' :
+                rem = self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos()
+            else :
+                rem = self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos()
             if rem.lower() != {'t' : 'rue', 'f' : 'alse'}[s] :
                 raise JsonTypeErrorException({'t' : 'true', 'f' : 'false'}[s], s + rem)
             else :
@@ -173,8 +175,8 @@ class Tokenizer(object) :
             return Token(TokenEnum.COLON, self.ch)
         elif self.ch == 'n' :
             return readNull()
-        elif self.ch == 't' or self.ch == 'f' :
-            return readBool()
+        elif self.ch.lower() == 't' or self.ch.lower() == 'f' :
+            return readBool(self.ch)
         elif self.ch == '"' :
             return readStr()
         elif self.ch == '-' :
