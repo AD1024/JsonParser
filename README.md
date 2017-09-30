@@ -35,3 +35,6 @@ result[KEY] # For JSONObject
 result[INDEX] # For JSONArray
 ```
 Also, `JSONArray` supports foreach loop. 
+
+# Issues
+- Cannot deal with HTML tags(Tags will cause parser error)

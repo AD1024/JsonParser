@@ -19,6 +19,8 @@ class Tokenizer(object) :
         self.tokenList.append(tk)
         while tk.getType() != TokenEnum.END_JSON :
             tk = self.parse()
+            # print(tk.getType())
+            # print(tk.value)
             self.tokenList.append(tk)
 
     def parse(self) :
@@ -73,10 +75,14 @@ class Tokenizer(object) :
                                 raise ParseException('I')
                     ret = str(ret)
                 elif self.ch == '"':
-                    # print(ret)
-                    return Token(TokenEnum.STRING, str(ret))
+                    tmp = self.reader.nextPos()
+                    if tmp not in (']', '}', ',', ':', ' ') :
+                        self.ch += tmp
+                        self.reader.prevPos()
+                    else :
+                        self.reader.prevPos()
+                        return Token(TokenEnum.STRING, str(ret))
                 elif self.ch == '\n' or self.ch == '\r' :
-                    # raise ParseException('I')
                     ret += str(self.ch)
                 else :
                     ret += str(self.ch)
