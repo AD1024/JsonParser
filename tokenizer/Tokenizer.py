@@ -56,8 +56,11 @@ class Tokenizer(object) :
                 read()
                 if self.ch == '\\' :
                     read()
+                    '''
+                    Temporarily remove escape test
                     if isEscape(self.ch) :
                         raise ParseException('I')
+                    '''
                     ret += '\\'
                     self.ch = self.reader.currentPos()
                     ret += self.ch
@@ -68,13 +71,15 @@ class Tokenizer(object) :
                                 ret += self.ch
                             else :
                                 raise ParseException('I')
+                    ret = str(ret)
                 elif self.ch == '"':
                     # print(ret)
-                    return Token(TokenEnum.STRING, ret)
+                    return Token(TokenEnum.STRING, str(ret))
                 elif self.ch == '\n' or self.ch == '\r' :
-                    raise ParseException('I')
+                    # raise ParseException('I')
+                    ret += str(self.ch)
                 else :
-                    ret += self.ch
+                    ret += str(self.ch)
 
         def readExp() :
             ret = ''

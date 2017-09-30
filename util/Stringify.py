@@ -18,7 +18,7 @@ def arrayToString(array, dep) :
         elif isinstance(item, JSONObject) :
             ret += toString(item, dep+1)
         elif isinstance(item, str) :
-            ret += getIndent();
+            ret += getIndent(dep)
             ret += '\"' + item + '\"'
         else :
             ret += getIndent(dep)
