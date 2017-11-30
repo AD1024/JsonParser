@@ -25,24 +25,14 @@ END_JSON = 65536
 
 class Parser(object):
     __slots__ = ('tokens',)
-    '''
-        def __init__(self):
-            self.tokens = TokenList()
-
-        def __init__(self, token_list=TokenList()):
-            self.tokens = token_list
-
-        def __init__(self, data=''):
-            self.tokens = Tokenizer(Reader(data)).get_tokens()
-    '''
 
     @classmethod
     def parse(cls, data=None):
-        '''
-            Get the JSON Data from raw_data
-            @param data   JSON String
-            @return JSONObject/JSONArray
-        '''
+        """
+        Parse the json data provided
+        :param data: data can be ``str`` or ``TokenList``, which comes from ``Tokenizer``
+        :return: JSONObject or JSONArray
+        """
         if type(data) == str:
             cls.tokens = Tokenizer(Reader(data)).get_tokens()
         elif type(data) == TokenList:
@@ -53,6 +43,10 @@ class Parser(object):
 
     @classmethod
     def _work(cls):
+        """
+        Major parsing function
+        :return: JSONObject or JSONArray
+        """
         token = cls.tokens.next()
         if not token:
             return JSONObject()
@@ -65,28 +59,29 @@ class Parser(object):
 
     @classmethod
     def check_token(cls, expected, actual):
-        '''
-            Check wether set expected and set actual have intersections(Bitmask)
-            @param expected     the set of expected token
-            @param actual       the set of received token from self.tokens
-        '''
+        """
+        Check whether set expected and set actual have intersections(Bit mask).
+        For instance is the `expected` token is `END_OBJECT` or `COMMA_TOKEN`, which is 4(100) and 512(1000000000)
+        the `expected` will be 1000000100.
+        :param expected: the expected set of tokens
+        :param actual: current token got from parser
+        :return: True if actual token is one element in `expected` otherwise False will be returned
+        """
         if expected & actual == 0:
             raise ParseException('T')
 
     @classmethod
     def get_text(cls, data):
-        '''
-            Decode the string in order to process unicode data
-            @param data    raw string
-            @return        decoded string
-        '''
+        """
+        Decode the string in order to process unicode data in order to make convenience while parsing Chinese data
+        :param data: raw string
+        :return: decoded string
+        """
         return data.encode('utf-8').decode('unicode-escape')
 
     @classmethod
     def parse_json_array(cls):
-        '''
-            Parse a JSONArray
-        '''
+        """ Parse a JSONArray"""
         expected = BEGIN_ARRAY | END_ARRAY | BEGIN_OBJECT | END_OBJECT | NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN
         array = JSONArray()
         while cls.tokens.has_next():
@@ -131,6 +126,7 @@ class Parser(object):
 
     @classmethod
     def parse_json_object(cls):
+        """Parse a JSONObject"""
         obj = JSONObject()
         expected = STRING_TOKEN | END_OBJECT
         key = None

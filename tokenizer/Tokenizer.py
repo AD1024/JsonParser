@@ -22,6 +22,7 @@ class Tokenizer(object):
             self.tokenList.append(tk)
 
     def parse(self):
+        """Parse a string sequence"""
         self.ch = ''
 
         def is_space(char):
