@@ -30,7 +30,7 @@ result = Parser.parse(token_list)
 ## Access enries
 The method of accessing elements in `JSONArray` and `JSONObject` is the same as that of using native module(json).
 ```python
-result = Parser(RAW_DATA).parse()
+result = Parser.parse(raw_data)
 result[KEY] # For JSONObject
 result[INDEX] # For JSONArray
 ```
