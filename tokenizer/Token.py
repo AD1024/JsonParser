@@ -1,18 +1,16 @@
-from .TokenEnum import *
-
-class Token(object) :
-    def __init__(self, tokenType, value) :
-        self.tokenType = tokenType
+class Token(object):
+    def __init__(self, token_type, value):
+        self.tokenType = token_type
         self.value = value
 
-    def getType(self) :
+    def get_type(self):
         return self.tokenType
 
-    def getValue(self) :
+    def get_value(self):
         return self.value
 
-    def setValue(self, value) :
+    def set_value(self, v):
         self.value = v
-    
-    def __str__(self) :
-        return 'Type:' + self.tokenType.name + ' Value: ' + str(self.value)
+
+    def __str__(self):
+        return 'Type:' + str(self.tokenType) + ' Value: ' + str(self.value)

@@ -1,26 +1,26 @@
-class TokenList(object) :
-    def __init__(self) :
+class TokenList(object):
+    def __init__(self):
         self.tokenList = list()
         self.cursor = 0
 
-    def append(self, token) :
+    def append(self, token):
         self.tokenList.append(token)
-    
-    def next(self) :
+
+    def next(self):
         ret = self.tokenList[self.cursor]
         self.cursor += 1
         return ret
 
-    def hasNext(self) :
+    def has_next(self):
         return self.cursor < len(self.tokenList)
 
-    def currentToken(self) :
-        if self.hasNext() :
+    def current_token(self):
+        if self.has_next():
             return self.tokenList[self.cursor]
-        else :
+        else:
             return None
-    
-    def prevToken(self, gen) :
-        if self.cursor == 0 :
+
+    def prev_token(self, gen):
+        if self.cursor == 0:
             return None
         return self.tokenList[self.cursor - gen]

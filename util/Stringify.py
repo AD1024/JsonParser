@@ -40,7 +40,7 @@ def toString(obj, dep) :
     ret = getIndent(dep)
     ret += '{'
     dep += 1
-    kvMap = obj.getAll()
+    kvMap = obj.get_all()
     for i in range(0, len(kvMap)) :
         k = kvMap[i][0]
         v = kvMap[i][1]

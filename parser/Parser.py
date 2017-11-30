@@ -1,7 +1,5 @@
 from tokenizer.Tokenizer import *
-from tokenizer.TokenEnum import *
 from tokenizer.TokenList import *
-from tokenizer.Token import *
 from model.JsonArray import JSONArray
 from model.JsonObject import JSONObject
 
@@ -24,125 +22,161 @@ COMMA_TOKEN = 512
 # end signal
 END_JSON = 65536
 
-class Parser(object) :
 
-    def __init__(self, tokenList = TokenList()) :
-        self.tokens = tokenList
-    
-    def __init__(self, data='') :
-        self.tokens = Tokenizer(Reader(data)).getTokens()
+class Parser(object):
+    __slots__ = ('tokens',)
+    '''
+        def __init__(self):
+            self.tokens = TokenList()
 
-    def parse(self) :
-        token = self.tokens.next()
-        if token == None :
+        def __init__(self, token_list=TokenList()):
+            self.tokens = token_list
+
+        def __init__(self, data=''):
+            self.tokens = Tokenizer(Reader(data)).get_tokens()
+    '''
+
+    @classmethod
+    def parse(cls, data=None):
+        '''
+            Get the JSON Data from raw_data
+            @param data   JSON String
+            @return JSONObject/JSONArray
+        '''
+        if type(data) == str:
+            cls.tokens = Tokenizer(Reader(data)).get_tokens()
+        elif type(data) == TokenList:
+            cls.tokens = data
+        elif not data:
             return JSONObject()
-        elif token.getType() == TokenEnum.BEGIN_ARRAY :
-            return self.parseJsonArray()
-        elif token.getType() == TokenEnum.BEGIN_OBJECT :
-            return self.parseJsonObject()
-        else :
+        return cls._work()
+
+    @classmethod
+    def _work(cls):
+        token = cls.tokens.next()
+        if not token:
+            return JSONObject()
+        elif token.get_type() == TokenEnum.BEGIN_ARRAY:
+            return cls.parse_json_array()
+        elif token.get_type() == TokenEnum.BEGIN_OBJECT:
+            return cls.parse_json_object()
+        else:
             raise ParseException('I')
-    
-    def checkToken(self, expected, actual) :
-        if expected & actual == 0 :
-            print(expected, actual)
+
+    @classmethod
+    def check_token(cls, expected, actual):
+        '''
+            Check wether set expected and set actual have intersections(Bitmask)
+            @param expected     the set of expected token
+            @param actual       the set of received token from self.tokens
+        '''
+        if expected & actual == 0:
             raise ParseException('T')
 
-    def parseJsonArray(self) :
+    @classmethod
+    def get_text(cls, data):
+        '''
+            Decode the string in order to process unicode data
+            @param data    raw string
+            @return        decoded string
+        '''
+        return data.encode('utf-8').decode('unicode-escape')
+
+    @classmethod
+    def parse_json_array(cls):
+        '''
+            Parse a JSONArray
+        '''
         expected = BEGIN_ARRAY | END_ARRAY | BEGIN_OBJECT | END_OBJECT | NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN
         array = JSONArray()
-        while self.tokens.hasNext() :
-            token = self.tokens.next()
-            tokenType = token.getType().value
-            tokenValue = token.getValue()
-            self.checkToken(expected, tokenType)
+        while cls.tokens.has_next():
+            token = cls.tokens.next()
+            # token_type -> TokenEnum
+            token_type = token.get_type().value
+            token_value = token.get_value()
+            cls.check_token(expected, token_type)
 
-            if tokenType == BEGIN_OBJECT :
-                array.append(self.parseJsonObject())
+            # check through each condition
+            if token_type == BEGIN_OBJECT:
+                array.append(cls.parse_json_object())
                 expected = COMMA_TOKEN | END_ARRAY
-            elif tokenType == BEGIN_ARRAY :
-                array.append(self.parseJsonArray())
+            elif token_type == BEGIN_ARRAY:
+                array.append(cls.parse_json_array())
                 expected = COMMA_TOKEN | END_ARRAY
-            elif tokenType == END_ARRAY :
+            elif token_type == END_ARRAY:
                 return array
-            elif tokenType == NULL_TOKEN :
+            elif token_type == NULL_TOKEN:
                 array.append(None)
                 expected = COMMA_TOKEN | END_ARRAY
-            elif tokenType == NUMBER_TOKEN :
-                if tokenValue.__contains__('.') or tokenValue.__contains__('e') or tokenValue.__contains__('E') :
-                    array.append(float(tokenValue))
-                else :
-                    array.append(int(tokenValue))
+            elif token_type == NUMBER_TOKEN:
+                if token_value.__contains__('.') or token_value.__contains__('e') or token_value.__contains__('E'):
+                    array.append(float(token_value))
+                else:
+                    array.append(int(token_value))
                 expected = COMMA_TOKEN | END_ARRAY
-            elif tokenType == STRING_TOKEN :
-                array.append(tokenValue)
+            elif token_type == STRING_TOKEN:
+                array.append(token_value)
                 expected = COMMA_TOKEN | END_ARRAY
-            elif tokenType == BOOL_TOKEN :
-                tokenValue = tokenValue.lower().capitalize()
-                array.append({'True' : True, 'False': False}[tokenValue])
+            elif token_type == BOOL_TOKEN:
+                token_value = token_value.lower().capitalize()  #
+                array.append({'True': True, 'False': False}[token_value])
                 expected = COMMA_TOKEN | END_ARRAY
-            elif COMMA_TOKEN :
+            elif COMMA_TOKEN:
                 expected = BEGIN_ARRAY | BEGIN_OBJECT | STRING_TOKEN | BOOL_TOKEN | NULL_TOKEN | NUMBER_TOKEN
-            elif END_JSON :
+            elif END_JSON:
                 return array
-            else :
+            else:
                 raise ParseException('U')
         raise ParseException('I')
 
-
-    def parseJsonObject(self) :
+    @classmethod
+    def parse_json_object(cls):
         obj = JSONObject()
         expected = STRING_TOKEN | END_OBJECT
         key = None
-        value = None
-        while self.tokens.hasNext() :
-            token = self.tokens.next()
-            tokenType = token.getType().value
-            tokenValue = token.getValue()
-            self.checkToken(expected, tokenType)
+        while cls.tokens.has_next():
+            token = cls.tokens.next()
+            token_type = token.get_type().value
+            token_value = token.get_value()
+            cls.check_token(expected, token_type)
 
-            if tokenType == BEGIN_OBJECT :
-                # chk(expected, tokenType)
-                obj.put(key, self.parseJsonObject())
+            if token_type == BEGIN_OBJECT:
+                obj.put(key, cls.parse_json_object())
                 expected = COMMA_TOKEN | END_OBJECT
-            elif tokenType == END_OBJECT :
-                # chk(expected, tokenType)
+            elif token_type == END_OBJECT:
                 return obj
-            elif tokenType == BEGIN_ARRAY :
-                # chk(expected, tokenType)
-                obj.put(key, self.parseJsonArray())
+            elif token_type == BEGIN_ARRAY:
+                obj.put(key, cls.parse_json_array())
                 expected = COMMA_TOKEN | END_OBJECT
-            elif tokenType == NULL_TOKEN :
-                # chk(expected, tokenType)
+            elif token_type == NULL_TOKEN:
                 obj.put(key, None)
                 expected = COMMA_TOKEN | END_OBJECT
-            elif tokenType == STRING_TOKEN :
-                preT = self.tokens.prevToken(2)
-                # print(self.tokens.tokenList[self.tokens.cursor - 2])
-                if preT.getType().value == COLON_TOKEN:
-                    value = token.getValue()
+            elif token_type == STRING_TOKEN:
+                pre_token = cls.tokens.prev_token(2)
+                if pre_token.get_type().value == COLON_TOKEN:
+                    value = token.get_value()
                     obj.put(key, value)
                     expected = COMMA_TOKEN | END_OBJECT
-                else :
-                    key = token.getValue()
+                else:
+                    key = token.get_value()
                     expected = COLON_TOKEN
-            elif tokenType == NUMBER_TOKEN :
-                if tokenValue.__contains__('.') or tokenValue.__contains__('e') or tokenValue.__contains__('E') :
-                    obj.put(key, float(tokenValue))
-                else :
-                    obj.put(key, int(tokenValue))
+            elif token_type == NUMBER_TOKEN:
+                if token_value.__contains__('.') or token_value.__contains__('e') or token_value.__contains__('E'):
+                    obj.put(key, float(token_value))
+                else:
+                    obj.put(key, int(token_value))
                 expected = COMMA_TOKEN | END_OBJECT
-            elif tokenType == BOOL_TOKEN :
-                tokenValue = tokenValue.lower().capitalize()
-                obj.put(key, {'True' : True, 'False': False}[tokenValue])
+            elif token_type == BOOL_TOKEN:
+                token_value = token_value.lower().capitalize()
+                obj.put(key, {'True': True, 'False': False}[token_value])
                 expected = COMMA_TOKEN | END_OBJECT
-            elif tokenType == COLON_TOKEN :
+            elif token_type == COLON_TOKEN:
                 expected = NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN | BEGIN_ARRAY | BEGIN_OBJECT
-            elif tokenType == COMMA_TOKEN :
+            elif token_type == COMMA_TOKEN:
                 expected = STRING_TOKEN
-            elif tokenType == END_JSON :
+            elif token_type == END_JSON:
                 return obj
-            else :
+            else:
                 raise ParseException('U')
 
-        raise ParseException('I')                   
+        raise ParseException('I')

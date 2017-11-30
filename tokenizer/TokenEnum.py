@@ -1,6 +1,7 @@
 from enum import Enum
 
-class TokenEnum(Enum) :
+
+class TokenEnum(Enum):
     # Signal token
     BEGIN_OBJECT = 1
     BEGIN_ARRAY = 2
@@ -12,7 +13,7 @@ class TokenEnum(Enum) :
     NUMBER = 32
     STRING = 64
     BOOL = 128
-    
+
     # separator token
     COLON = 256
     COMMA = 512

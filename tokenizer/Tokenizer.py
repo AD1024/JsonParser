@@ -4,59 +4,62 @@ from .Token import *
 from .TokenEnum import *
 from .TokenList import *
 
-class Tokenizer(object) :
-    def __init__(self, reader) :
+
+class Tokenizer(object):
+    def __init__(self, reader):
         self.reader = PosReader(reader)
         self.tokenList = TokenList()
         self.tokenize()
 
-    def getTokens(self) :
+    def get_tokens(self):
         return self.tokenList
-    
-    def tokenize(self) :
-        tk = None
+
+    def tokenize(self):
         tk = self.parse()
         self.tokenList.append(tk)
-        while tk.getType() != TokenEnum.END_JSON :
+        while tk.get_type() != TokenEnum.END_JSON:
             tk = self.parse()
-            # print(tk.getType())
-            # print(tk.value)
             self.tokenList.append(tk)
 
-    def parse(self) :
+    def parse(self):
         self.ch = ''
-        isSpace = lambda x : x in ('\n', '\t', '\r', ' ', '')
-        isEscape = lambda x: x in ('"', 'u', 'r', 'n', 'b', 't', 'f', '\\')
-        isHex = lambda x: x.isdigit() or (x >= 'a' and x <= 'f') or (x >= 'A' and x <= 'F')
-        isExp = lambda x: x in ('e', 'E')
-        
-        def read() :
-            self.ch = self.reader.nextPos()
 
-        def readNull() :
-            rem = self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos()
-            if rem.lower() != 'ull' :
+        def is_space(char):
+            return char in ('\n', '\t', '\r', ' ', '')
+
+        def is_hex(char):
+            return char.isdigit() or (ord(char) in range(ord('a'), ord('g'))) \
+                   or (ord(char) in range(ord('A'), ord('G')))
+
+        def is_exp(char):
+            return char in ('e', 'E')
+
+        def read():
+            self.ch = self.reader.next_pos()
+
+        def read_null():
+            rem = self.reader.next_pos() + self.reader.next_pos() + self.reader.next_pos()
+            if rem.lower() != 'ull':
                 raise JsonTypeErrorException('null', 'n%s' % rem)
-            else :
+            else:
                 return Token(TokenEnum.NULL, 'null')
 
-        def readBool(s) :
+        def read_bool(s):
             s = s.lower()
-            rem = ''
-            if s == 't' :
-                rem = self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos()
-            else :
-                rem = self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos() + self.reader.nextPos()
-            if rem.lower() != {'t' : 'rue', 'f' : 'alse'}[s] :
-                raise JsonTypeErrorException({'t' : 'true', 'f' : 'false'}[s], s + rem)
-            else :
+            if s == 't':
+                rem = self.reader.next_pos() + self.reader.next_pos() + self.reader.next_pos()
+            else:
+                rem = self.reader.next_pos() + self.reader.next_pos() + self.reader.next_pos() + self.reader.next_pos()
+            if rem.lower() != {'t': 'rue', 'f': 'alse'}[s]:
+                raise JsonTypeErrorException({'t': 'true', 'f': 'false'}[s], s + rem)
+            else:
                 return Token(TokenEnum.BOOL, s + rem)
 
-        def readStr() :
+        def read_str():
             ret = ''
-            while 1 :
+            while 1:
                 read()
-                if self.ch == '\\' :
+                if self.ch == '\\':
                     read()
                     '''
                     Temporarily remove escape test
@@ -64,134 +67,133 @@ class Tokenizer(object) :
                         raise ParseException('I')
                     '''
                     ret += '\\'
-                    self.ch = self.reader.currentPos()
+                    self.ch = self.reader.current_pos()
                     ret += self.ch
-                    if self.ch == 'u' :
-                        for i in (1,2,3,4) :
+                    if self.ch == 'u':
+                        for i in (1, 2, 3, 4):
                             read()
-                            if isHex(self.ch) :
+                            if is_hex(self.ch):
                                 ret += self.ch
-                            else :
+                            else:
                                 raise ParseException('I')
                     ret = str(ret)
                 elif self.ch == '"':
-                    tmp = self.reader.nextPos()
-                    if tmp not in (']', '}', ',', ':', ' ') :
+                    tmp = self.reader.next_pos()
+                    if tmp not in (']', '}', ',', ':', ' '):
                         self.ch += tmp
-                        self.reader.prevPos()
-                    else :
-                        self.reader.prevPos()
+                        self.reader.prev_pos()
+                    else:
+                        self.reader.prev_pos()
                         return Token(TokenEnum.STRING, str(ret))
-                elif self.ch == '\n' or self.ch == '\r' :
+                elif self.ch == '\n' or self.ch == '\r':
                     ret += str(self.ch)
-                else :
+                else:
                     ret += str(self.ch)
 
-        def readExp() :
+        def read_exp():
             ret = ''
             read()
-            if self.ch == '+' or self.ch == '-' :
+            if self.ch == '+' or self.ch == '-':
                 ret += self.ch
                 read()
-                if not self.ch.isdigit() :
+                if not self.ch.isdigit():
                     raise ParseException('E')
                 ret += self.ch
                 read()
-                while self.ch.isdigit() :
+                while self.ch.isdigit():
                     ret += self.ch
                     read()
-                if self.ch != None :
-                    self.reader.prevPos()
-            else :
+                if self.ch:
+                    self.reader.prev_pos()
+            else:
                 JsonTypeErrorException('e or E', self.ch)
             return ret
 
-        def readOthers() :
+        def read_others():
             ret = ''
             read()
-            if self.ch == '.' :
+            if self.ch == '.':
                 ret += self.ch
                 read()
-                if not self.ch.isdigit() :
+                if not self.ch.isdigit():
                     raise ParseException('I')
                 ret += self.ch
                 read()
-                while self.ch.isdigit() :
+                while self.ch.isdigit():
                     ret += self.ch
                     read()
-                if isExp(self.ch) :
+                if is_exp(self.ch):
                     ret += self.ch
-                    ret += readExp()
-                else :
-                    if self.ch != None :
-                        self.reader.prevPos()
-            elif isExp(self.ch) :
+                    ret += read_exp()
+                else:
+                    if self.ch:
+                        self.reader.prev_pos()
+            elif is_exp(self.ch):
                 ret += self.ch
-                ret += readExp()
-            else :
-                self.reader.prevPos()
+                ret += read_exp()
+            else:
+                self.reader.prev_pos()
             return ret
 
-        def readNum() :
+        def read_num():
             ret = ''
-            if self.ch == '-' :
+            if self.ch == '-':
                 ret += self.ch
                 read()
-                if self.ch == '0' :
+                if self.ch == '0':
                     ret += self.ch
-                    ret += readOthers()
-                elif self.ch > '0' and self.ch <= '9' :
+                    ret += read_others()
+                elif self.ch > '0' and self.ch <= '9':
                     ret += self.ch
                     read()
-                    while self.ch and self.ch.isdigit() :
+                    while self.ch and self.ch.isdigit():
                         ret += self.ch
                         read()
-                    if self.ch != None :
-                        self.reader.prevPos()
-                        ret += readOthers()
-                else :
+                    if self.ch:
+                        self.reader.prev_pos()
+                        ret += read_others()
+                else:
                     raise ParseException('I')
-            elif self.ch == '0' :
+            elif self.ch == '0':
                 ret += '0'
-                ret += readOthers()
-            else :
+                ret += read_others()
+            else:
                 ret += self.ch
                 read()
-                while self.ch and self.ch.isdigit() :
+                while self.ch and self.ch.isdigit():
                     ret += self.ch
                     read()
-                if self.ch != None :
-                    self.reader.prevPos()
-                    ret += readOthers()
+                if self.ch:
+                    self.reader.prev_pos()
+                    ret += read_others()
             return Token(TokenEnum.NUMBER, ret)
-        while True :
-            if self.reader.hasNext() :
-                self.ch = self.reader.nextPos()
-                # print(self.ch)
-                if not isSpace(self.ch) :
+
+        while True:
+            if self.reader.has_next():
+                self.ch = self.reader.next_pos()
+                if not is_space(self.ch):
                     break
-            else :
+            else:
                 return Token(TokenEnum.END_JSON, None)
-        if self.ch == '{' :
+        if self.ch == '{':
             return Token(TokenEnum.BEGIN_OBJECT, self.ch)
-        elif self.ch == '}' :
+        elif self.ch == '}':
             return Token(TokenEnum.END_OBJECT, self.ch)
-        elif self.ch == '[' :
+        elif self.ch == '[':
             return Token(TokenEnum.BEGIN_ARRAY, self.ch)
-        elif self.ch == ']' :
+        elif self.ch == ']':
             return Token(TokenEnum.END_ARRAY, self.ch)
-        elif self.ch == ',' :
+        elif self.ch == ',':
             return Token(TokenEnum.COMMA, self.ch)
-        elif self.ch == ':' :
+        elif self.ch == ':':
             return Token(TokenEnum.COLON, self.ch)
-        elif self.ch == 'n' :
-            return readNull()
-        elif self.ch.lower() == 't' or self.ch.lower() == 'f' :
-            return readBool(self.ch)
-        elif self.ch == '"' :
-            return readStr()
-        elif self.ch == '-' :
-            return readNum()
-        if self.ch.isdigit() :
-            return readNum()
-        
+        elif self.ch == 'n':
+            return read_null()
+        elif self.ch.lower() == 't' or self.ch.lower() == 'f':
+            return read_bool(self.ch)
+        elif self.ch == '"':
+            return read_str()
+        elif self.ch == '-':
+            return read_num()
+        if self.ch.isdigit():
+            return read_num()
