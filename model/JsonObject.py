@@ -33,6 +33,12 @@ class JSONObject(dict):
     def to_python(self):
         return self._parse_dict(self)
 
+    def items(self):
+        return self.kvMap.items()
+
+    def keys(self):
+        return self.kvMap.keys()
+
     def __str__(self):
         return to_string(self, 0)
 
@@ -41,6 +47,9 @@ class JSONObject(dict):
 
     def __setitem__(self, key, value):
         self.kvMap[key] = value
+
+    def __iter__(self):
+        return iter(self.kvMap)
 
     def __eq__(self, obj):
         if isinstance(obj, JSONObject):
