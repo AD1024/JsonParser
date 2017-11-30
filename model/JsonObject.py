@@ -1,4 +1,4 @@
-from util.Stringify import toString
+from util.Stringify import to_string
 
 
 class JSONObject(dict):
@@ -19,7 +19,7 @@ class JSONObject(dict):
         return self.kvMap
 
     def __str__(self):
-        return toString(self, 0)
+        return to_string(self, 0)
 
     def __getitem__(self, key):
         return self.kvMap.get(key, None)

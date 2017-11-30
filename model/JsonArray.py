@@ -39,7 +39,7 @@ class JSONArray(list):
         raise JsonTypeErrorException('JSONArray', str(type(ret)))
 
     def __str__(self):
-        return arrayToString(self, 0)
+        return array_to_string(self, 0)
 
     def __iter__(self):
         return iter(self.data)
