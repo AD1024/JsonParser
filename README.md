@@ -27,7 +27,7 @@ for i in tokenList :
 result = Parser.parse(token_list)
 ```
 
-## Access enries
+## Access entries
 The method of accessing elements in `JSONArray` and `JSONObject` is the same as that of using native module(json).
 ```python
 result = Parser.parse(raw_data)
@@ -39,8 +39,11 @@ Also, `JSONArray` supports foreach loop.
 ## Get Python Data
 The `JSONObject` and `JSONArray` support getting a python data `dict` and `list`.
 ```python
-python_dict = json_data.get_dict() # if json_data is JSONObject
-python_list = json_data.get_list() # if json_data is JSONArray
+python_data = json_data.to_python()
+```
+or
+```python
+python_data = Parser.parse(raw_data, True)
 ```
 
 # Issues
