@@ -17,8 +17,22 @@ class JSONArray(list):
     def append(self, i):
         self.data.append(i)
 
-    def get_list(self):
-        return self.data
+    def _parse_data(self, data):
+        if type(data) == JSONObject:
+            ret = {}
+            for k, v in data.kvMap.items():
+                ret.update({k: self._parse_data(v)})
+            return ret
+        elif type(data) == JSONArray:
+            ret = []
+            for i in data.data:
+                ret.append(self._parse_data(i))
+            return ret
+        else:
+            return data
+
+    def to_python(self):
+        return self._parse_data(self)
 
     def __getitem__(self, i):
         return self.data[i]

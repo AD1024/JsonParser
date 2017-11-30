@@ -15,8 +15,23 @@ class JSONObject(dict):
     def get_all(self):
         return list(self.kvMap.items())
 
-    def get_dict(self):
-        return self.kvMap
+    def _parse_dict(self, data):
+        from model.JsonArray import JSONArray
+        if type(data) == JSONObject:
+            ret = {}
+            for k, v in data.kvMap.items():
+                ret.update({k: self._parse_dict(v)})
+            return ret
+        elif type(data) == JSONArray:
+            array = list()
+            for i in data.data:
+                array.append(self._parse_dict(i))
+            return array
+        else:
+            return data
+
+    def to_python(self):
+        return self._parse_dict(self)
 
     def __str__(self):
         return to_string(self, 0)

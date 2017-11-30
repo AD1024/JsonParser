@@ -27,10 +27,11 @@ class Parser(object):
     __slots__ = ('tokens',)
 
     @classmethod
-    def parse(cls, data=None):
+    def parse(cls, data=None, get_python_data=False):
         """
         Parse the json data provided
         :param data: data can be ``str`` or ``TokenList``, which comes from ``Tokenizer``
+        :param get_python_data: return PythonObj if True else JSON data(JSONObject/JSONArray)
         :return: JSONObject or JSONArray
         """
         if type(data) == str:
@@ -39,7 +40,10 @@ class Parser(object):
             cls.tokens = data
         elif not data:
             return JSONObject()
-        return cls._work()
+        ret = cls._work()
+        if get_python_data:
+            return ret.to_python()
+        return ret
 
     @classmethod
     def _work(cls):
