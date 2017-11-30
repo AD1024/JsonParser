@@ -82,7 +82,8 @@ class Parser(object):
     @classmethod
     def parse_json_array(cls):
         """ Parse a JSONArray"""
-        expected = BEGIN_ARRAY | END_ARRAY | BEGIN_OBJECT | END_OBJECT | NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN
+        expected = BEGIN_ARRAY | END_ARRAY | BEGIN_OBJECT | END_OBJECT | \
+                        NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN
         array = JSONArray()
         while cls.tokens.has_next():
             token = cls.tokens.next()
