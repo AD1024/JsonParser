@@ -1,7 +1,7 @@
-from tokenizer.Tokenizer import *
-from tokenizer.TokenList import *
-from model.JsonArray import JSONArray
-from model.JsonObject import JSONObject
+from .models.JsonArray import JSONArray
+
+from .models.JsonObject import JSONObject
+from .tokenizer.Tokenizer import *
 
 # Signal token
 BEGIN_OBJECT = 1
@@ -27,23 +27,21 @@ class Parser(object):
     __slots__ = ('tokens',)
 
     @classmethod
-    def parse(cls, data=None, get_python_data=False):
+    def parse(cls, data=None, use_built_in=True):
         """
         Parse the json data provided
         :param data: data can be ``str`` or ``TokenList``, which comes from ``Tokenizer``
         :param get_python_data: return PythonObj if True else JSON data(JSONObject/JSONArray)
         :return: JSONObject or JSONArray
         """
+        cls.data_conf = use_built_in
         if type(data) == str:
             cls.tokens = Tokenizer(Reader(data)).get_tokens()
         elif type(data) == TokenList:
             cls.tokens = data
         elif not data:
             return JSONObject()
-        ret = cls._work()
-        if get_python_data:
-            return ret.to_python()
-        return ret
+        return cls._work()
 
     @classmethod
     def _work(cls):
@@ -88,7 +86,7 @@ class Parser(object):
         """ Parse a JSONArray"""
         expected = BEGIN_ARRAY | END_ARRAY | BEGIN_OBJECT | END_OBJECT | \
                         NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN
-        array = JSONArray()
+        array = {False: JSONArray(), True: list()}.get(cls.data_conf)
         while cls.tokens.has_next():
             token = cls.tokens.next()
             # token_type -> TokenEnum
@@ -132,7 +130,7 @@ class Parser(object):
     @classmethod
     def parse_json_object(cls):
         """Parse a JSONObject"""
-        obj = JSONObject()
+        obj = {False: JSONObject(), True: dict()}.get(cls.data_conf)
         expected = STRING_TOKEN | END_OBJECT
         key = None
         while cls.tokens.has_next():
@@ -142,34 +140,34 @@ class Parser(object):
             cls.check_token(expected, token_type)
 
             if token_type == BEGIN_OBJECT:
-                obj.put(key, cls.parse_json_object())
+                obj.update({key: cls.parse_json_object()})
                 expected = COMMA_TOKEN | END_OBJECT
             elif token_type == END_OBJECT:
                 return obj
             elif token_type == BEGIN_ARRAY:
-                obj.put(key, cls.parse_json_array())
+                obj.update({key: cls.parse_json_array()})
                 expected = COMMA_TOKEN | END_OBJECT
             elif token_type == NULL_TOKEN:
-                obj.put(key, None)
+                obj.update({key: None})
                 expected = COMMA_TOKEN | END_OBJECT
             elif token_type == STRING_TOKEN:
                 pre_token = cls.tokens.prev_token(2)
                 if pre_token.get_type().value == COLON_TOKEN:
                     value = token.get_value()
-                    obj.put(key, value)
+                    obj.update({key: value})
                     expected = COMMA_TOKEN | END_OBJECT
                 else:
                     key = token.get_value()
                     expected = COLON_TOKEN
             elif token_type == NUMBER_TOKEN:
                 if token_value.__contains__('.') or token_value.__contains__('e') or token_value.__contains__('E'):
-                    obj.put(key, float(token_value))
+                    obj.update({key: float(token_value)})
                 else:
-                    obj.put(key, int(token_value))
+                    obj.update({key: int(token_value)})
                 expected = COMMA_TOKEN | END_OBJECT
             elif token_type == BOOL_TOKEN:
                 token_value = token_value.lower().capitalize()
-                obj.put(key, {'True': True, 'False': False}[token_value])
+                obj.update({key: {'True': True, 'False': False}[token_value]})
                 expected = COMMA_TOKEN | END_OBJECT
             elif token_type == COLON_TOKEN:
                 expected = NULL_TOKEN | NUMBER_TOKEN | BOOL_TOKEN | STRING_TOKEN | BEGIN_ARRAY | BEGIN_OBJECT

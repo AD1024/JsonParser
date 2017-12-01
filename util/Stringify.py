@@ -6,8 +6,8 @@ def get_indent(dep):
 
 
 def array_to_string(array, dep):
-    from model.JsonArray import JSONArray
-    from model.JsonObject import JSONObject
+    from ..models.JsonArray import JSONArray
+    from ..models.JsonObject import JSONObject
     ret = get_indent(dep)
     ret += '['
     dep += 1
@@ -34,8 +34,8 @@ def array_to_string(array, dep):
 
 
 def to_string(obj, dep):
-    from model.JsonObject import JSONObject
-    from model.JsonArray import JSONArray
+    from ..models.JsonObject import JSONObject
+    from ..models.JsonArray import JSONArray
     '''
     Stringify json data
     '''

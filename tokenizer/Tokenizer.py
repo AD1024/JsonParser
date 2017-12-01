@@ -1,4 +1,4 @@
-from exceptions.Exceptions import *
+from ..exceptions.Exceptions import *
 from .Readers import *
 from .Token import *
 from .TokenEnum import *

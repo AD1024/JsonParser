@@ -1,4 +1,4 @@
-from util.Stringify import to_string
+from ..util.Stringify import to_string
 
 
 class JSONObject(dict):
@@ -16,7 +16,7 @@ class JSONObject(dict):
         return list(self.kvMap.items())
 
     def _parse_dict(self, data):
-        from model.JsonArray import JSONArray
+        from models.JsonArray import JSONArray
         if type(data) == JSONObject:
             ret = {}
             for k, v in data.kvMap.items():
@@ -38,6 +38,18 @@ class JSONObject(dict):
 
     def keys(self):
         return self.kvMap.keys()
+
+    def update(self, t):
+        self.kvMap.update(t)
+
+    def set_data(self, data):
+        if type(data) == dict:
+            if len(list(filter(lambda x: type(x) == str, data.keys()))) == len(data.keys()):
+                self.kvMap = data.copy()
+            else:
+                raise TypeError('Unexpected type(s) of key(s)')
+        else:
+            raise TypeError('expected dict, actual %s' % str(type(data)))
 
     def __str__(self):
         return to_string(self, 0)

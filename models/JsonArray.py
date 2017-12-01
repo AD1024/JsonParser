@@ -1,6 +1,6 @@
-from .JsonObject import *
-from exceptions.Exceptions import *
-from util.Stringify import *
+from .JsonObject import JSONObject
+from ..exceptions.Exceptions import *
+from ..util.Stringify import *
 
 
 class JSONArray(list):
@@ -51,6 +51,12 @@ class JSONArray(list):
         if isinstance(ret, JSONArray):
             return ret
         raise JsonTypeErrorException('JSONArray', str(type(ret)))
+
+    def set_data(self, data):
+        if type(data) == list:
+            self.data = data.copy()
+        else:
+            raise TypeError('expected list, actual %s' % str(type(data)))
 
     def __str__(self):
         return array_to_string(self, 0)

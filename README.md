@@ -2,9 +2,29 @@
 A JSON Parser written in Python3
 
 # Usage
+## Simple Usage
+```python
+import JsonParser
+data = JsonParser.parse(raw_data)
+```
+
+## Get JSONObject or JSONArray
+This lib provides a custom data type(JSONArray and JSONObject). You can make the parser return this data type by:
+```python
+data = JsonParser.parse(raw_data, use_python_data=False)
+```
+
+## Get Prettified Str
+```python
+ret = JsonParser.prettify(json_string)
+```
+
+---
+
+# ~~Usage~~(Deprecated)
 
 ## Simple Usage
-- The major function is in `parser/Parser`.
+- ~~The major function is in `parser/Parser`.~~
 ```python
 from parser.Parser import *
 result = Parser.parse(raw_data)
