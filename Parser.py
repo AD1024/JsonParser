@@ -107,8 +107,10 @@ class Parser(object):
                 array.append(None)
                 expected = COMMA_TOKEN | END_ARRAY
             elif token_type == NUMBER_TOKEN:
-                if token_value.__contains__('.') or token_value.__contains__('e') or token_value.__contains__('E'):
+                if '.' in token_value or 'e' in token_value or 'E' in token_value:
                     array.append(float(token_value))
+                elif 'x' in token_value:
+                    array.append(int(token_value, base=16))
                 else:
                     array.append(int(token_value))
                 expected = COMMA_TOKEN | END_ARRAY
@@ -160,8 +162,10 @@ class Parser(object):
                     key = token.get_value()
                     expected = COLON_TOKEN
             elif token_type == NUMBER_TOKEN:
-                if token_value.__contains__('.') or token_value.__contains__('e') or token_value.__contains__('E'):
+                if '.' in token_value or 'e' in token_value or 'E' in token_value:
                     obj.update({key: float(token_value)})
+                elif 'x' in token_value:
+                    obj.update({key: int(token_value, base=16)})
                 else:
                     obj.update({key: int(token_value)})
                 expected = COMMA_TOKEN | END_OBJECT

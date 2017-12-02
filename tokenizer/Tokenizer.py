@@ -7,6 +7,7 @@ from .TokenList import *
 
 class Tokenizer(object):
     def __init__(self, reader):
+        self.ch = ''
         self.reader = PosReader(reader)
         self.tokenList = TokenList()
         self.tokenize()
@@ -92,9 +93,14 @@ class Tokenizer(object):
                     ret += str(self.ch)
 
         def read_exp():
+            """
+            Read an exp form of number
+            :return:
+            """
             ret = ''
             read()
             if self.ch == '+' or self.ch == '-':
+                '''deal with numbers like 1e+3, 1e-10'''
                 ret += self.ch
                 read()
                 if not self.ch.isdigit():
@@ -105,15 +111,31 @@ class Tokenizer(object):
                     ret += self.ch
                     read()
                 if self.ch:
+                    '''
+                    If the next character of the last of the number is not 
+                    the end signal, the cursor should be moved one step back
+                    '''
                     self.reader.prev_pos()
             else:
+                '''deal with numbers like 1e10'''
+                while self.ch.isdigit():
+                    ret += self.ch
+                    read()
+                if self.ch:
+                    self.reader.prev_pos()
                 JsonTypeErrorException('e or E', self.ch)
             return ret
 
         def read_others():
+            """
+            Read other forms of values
+            :return:
+            """
             ret = ''
+            prev_zero = self.ch == '0'
             read()
             if self.ch == '.':
+                '''decimals'''
                 ret += self.ch
                 read()
                 if not self.ch.isdigit():
@@ -130,8 +152,18 @@ class Tokenizer(object):
                     if self.ch:
                         self.reader.prev_pos()
             elif is_exp(self.ch):
+                '''exp numbers'''
                 ret += self.ch
                 ret += read_exp()
+            elif self.ch.lower() == 'x' and prev_zero:
+                '''hex numbers'''
+                ret += self.ch
+                read()
+                while is_hex(self.ch):
+                    ret += self.ch
+                    read()
+                if self.ch:
+                    self.reader.prev_pos()
             else:
                 self.reader.prev_pos()
             return ret
@@ -144,7 +176,7 @@ class Tokenizer(object):
                 if self.ch == '0':
                     ret += self.ch
                     ret += read_others()
-                elif self.ch > '0' and self.ch <= '9':
+                elif ord(self.ch) in range(ord('1'), ord('9')+1):
                     ret += self.ch
                     read()
                     while self.ch and self.ch.isdigit():
