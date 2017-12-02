@@ -67,4 +67,4 @@ python_data = Parser.parse(raw_data, True)
 ```
 
 # Issues
-- Cannot deal with HTML tags(Tags will cause parser error)
+- ~~Cannot deal with HTML tags(Tags will cause parser error)~~ =fixed
