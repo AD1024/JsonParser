@@ -9,8 +9,8 @@ class JSONObject(dict):
     def put(self, k, v):
         self.kvMap.update({k: v})
 
-    def get(self, k):
-        return self.kvMap.get(k, None)
+    def get(self, k, default=None):
+        return self.kvMap.get(k, default)
 
     def get_all(self):
         return list(self.kvMap.items())
@@ -50,6 +50,12 @@ class JSONObject(dict):
                 raise TypeError('Unexpected type(s) of key(s)')
         else:
             raise TypeError('expected dict, actual %s' % str(type(data)))
+
+    def __repr__(self):
+        return to_string(self, 0)
+
+    def __contains__(self, item):
+        return self.kvMap.__contains__(item)
 
     def __str__(self):
         return to_string(self, 0)

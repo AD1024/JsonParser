@@ -57,7 +57,7 @@ class Parser(object):
         elif token.get_type() == TokenEnum.BEGIN_OBJECT:
             return cls.parse_json_object()
         else:
-            raise ParseException('I')
+            raise ParseException('Illegal token at beginning')
 
     @classmethod
     def check_token(cls, expected, actual):
@@ -70,7 +70,7 @@ class Parser(object):
         :return: True if actual token is one element in `expected` otherwise False will be returned
         """
         if expected & actual == 0:
-            raise ParseException('T')
+            raise ParseException('Unexpected Token at position %d' % cls.tokens.get_cursor_position())
 
     @classmethod
     def get_text(cls, data):
@@ -118,7 +118,7 @@ class Parser(object):
                 array.append(token_value)
                 expected = COMMA_TOKEN | END_ARRAY
             elif token_type == BOOL_TOKEN:
-                token_value = token_value.lower().capitalize()  #
+                token_value = token_value.lower().capitalize()
                 array.append({'True': True, 'False': False}[token_value])
                 expected = COMMA_TOKEN | END_ARRAY
             elif COMMA_TOKEN:
@@ -126,8 +126,8 @@ class Parser(object):
             elif END_JSON:
                 return array
             else:
-                raise ParseException('U')
-        raise ParseException('I')
+                raise ParseException('Unexpected token at position %d' % cls.tokens.get_cursor_position())
+        raise ParseException('Illegal token at position %d' % cls.tokens.get_cursor_position())
 
     @classmethod
     def parse_json_object(cls):
@@ -160,6 +160,8 @@ class Parser(object):
                     expected = COMMA_TOKEN | END_OBJECT
                 else:
                     key = token.get_value()
+                    # if obj.__contains__(key):
+                    #    raise KeyError('Duplicated key: {}'.format(key))
                     expected = COLON_TOKEN
             elif token_type == NUMBER_TOKEN:
                 if '.' in token_value or 'e' in token_value or 'E' in token_value:
@@ -180,6 +182,6 @@ class Parser(object):
             elif token_type == END_JSON:
                 return obj
             else:
-                raise ParseException('U')
+                raise ParseException('Unexpected token at position %d' % cls.tokens.get_cursor_position())
 
-        raise ParseException('I')
+        raise ParseException('Illegal token at position %d' % cls.tokens.get_cursor_position())

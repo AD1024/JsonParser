@@ -3,6 +3,9 @@ class TokenList(object):
         self.tokenList = list()
         self.cursor = 0
 
+    def get_cursor_position(self):
+        return self.cursor
+
     def append(self, token):
         self.tokenList.append(token)
 

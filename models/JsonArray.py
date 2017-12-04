@@ -58,6 +58,12 @@ class JSONArray(list):
         else:
             raise TypeError('expected list, actual %s' % str(type(data)))
 
+    def __repr__(self):
+        return array_to_string(self, 0)
+
+    def __contains__(self, item):
+        return self.data.__contains__(item)
+
     def __str__(self):
         return array_to_string(self, 0)
 
